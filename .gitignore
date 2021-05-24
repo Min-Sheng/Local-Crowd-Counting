@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# model files
+*.h5
+*.h5df
+*.pb
+*.pkl
+*.en
+*.pth
+*.pt
+exp/
+
+# others
+.ipynb_checkpoints/
+*.ipynb
+.ipynb_checkpoints
+*.json
+ProcessedData/
+test_res/
+.idea/
+hema_10x_res/

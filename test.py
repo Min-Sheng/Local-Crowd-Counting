@@ -104,6 +104,7 @@ def test(file_list, model_path):
         with torch.no_grad():
             img = Variable(img[None, :, :, :]).cuda()
             pred_map = net.test_forward(img)
+            print(img.shape, pred_map.shape)
 
         ''' MAE/MSE'''
         gt_value = np.sum(den_map)

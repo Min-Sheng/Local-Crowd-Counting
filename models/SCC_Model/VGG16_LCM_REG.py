@@ -17,6 +17,9 @@ elif data_mode is 'QNRF':
     patch_max = cfg.QNRFPATCHMAX
 elif data_mode is 'UCF50':
     patch_max = cfg.CC50PATCHMAX
+elif data_mode is 'HEMA':
+    patch_max = cfg.HEMAPATCHMAX
+
 
 class VGG16_LCM_REG(nn.Module):
     def __init__(self, load_weights=False, stage_num=[3,3,3], count_range=patch_max, lambda_i=1., lambda_k=1.):

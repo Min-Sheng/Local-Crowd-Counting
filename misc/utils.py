@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import os
 import math
@@ -14,6 +15,75 @@ import torchvision.transforms as standard_transforms
 
 import pdb
 
+class PostProcessor:
+    def __init__(self):
+        """local image post-processing filter
+        """
+
+    def set_global_anchor(self, img, image_color_space="rgb"):
+        if image_color_space == "rgb":
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV_FULL)
+        elif image_color_space == "bgr":
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV_FULL)
+        else:
+            assert False, "Input image color space should be either RGB or BGR"
+        img = np.float32(img)
+        img[:,:,0] = (img[:,:,0] / 255) * 360 # 0-255 ~ 0-360 (Hue)
+        img[:,:,1] = (img[:,:,1] / 255) * 100 # 0-255 ~ 0-100 (Saturation)
+        img[:,:,2] = (img[:,:,2] / 255) * 100 # 0-255 ~ 0-100 (Lightness)
+        
+        # set bad smear anchor
+        s_channel=img[:,:,1]
+        v_channel=img[:,:,2]
+        self.global_white_max = np.percentile(v_channel.ravel(), 99.5)
+        x = v_channel[s_channel>80]
+        self.global_purple_mean = x.mean()
+        self.global_purple_std = x.std()
+
+    def run(self, img, image_color_space="rgb"):
+        if image_color_space == "rgb":
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV_FULL)
+        elif image_color_space == "bgr":
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV_FULL)
+        else:
+            assert False, "Input image color space should be either RGB or BGR"
+        img = np.float32(img)
+        img[:,:,0] = (img[:,:,0] / 255) * 360 # 0-255 ~ 0-360 (Hue)
+        img[:,:,1] = (img[:,:,1] / 255) * 100 # 0-255 ~ 0-100 (Saturation)
+        img[:,:,2] = (img[:,:,2] / 255) * 100 # 0-255 ~ 0-100 (Lightness)
+        
+        # check is gray RBC  
+        self.gray_mask = gray_mask = self._check_gray(img)
+        
+    
+    def _check_gray(self, img, s_range=[0, 30], v_threshold=None):
+        v_threshold = (self.global_white_max-10) if v_threshold is None else v_threshold
+
+        h_channel = img[:,:,0]
+        s_channel = img[:,:,1]
+        v_channel = img[:,:,2]
+    
+        s_min, s_max = s_range
+        mask = ((s_channel >= s_min) & (s_channel <= s_max)) * (v_channel < v_threshold)
+        return mask
+    
+    def _check_white(self, img, s_threshold=20, v_threshold=None):
+        v_threshold = (self.global_white_max-10) if v_threshold is None else v_threshold
+        s_channel = img[:,:,1]
+        v_channel = img[:,:,2]
+        mask = (s_channel <= s_threshold) * (v_channel >= v_threshold)
+        return mask
+
+    def _check_bad_smear(self, img, h_range=[220, 280], v_threshold=None):
+        h_channel = img[:,:,0]
+        s_channel = img[:,:,1]
+        v_channel = img[:,:,2]
+
+        v_threshold = (self.global_purple_mean+self.global_purple_std) if v_threshold is None else v_threshold
+        
+        h_min, h_max = h_range
+        mask = ((h_channel >= h_min) & (h_channel <= h_max)) & (v_channel <= v_threshold)
+        return mask
 
 def ConvertPatchMatrix(matrix, patch_number):
     h, w = matrix.shape[0], matrix.shape[1]
@@ -72,7 +142,7 @@ def weights_normal_init(*models):
 
 def logger(exp_path, exp_name, work_dir, exception, resume=False):
 
-    from tensorboardX import SummaryWriter
+    from torch.utils.tensorboard import SummaryWriter
     
     if not os.path.exists(exp_path):
         os.mkdir(exp_path)

@@ -14,6 +14,8 @@ class CrowdCounter(nn.Module):
             from .SCC_Model.CSRNet_DM import CSRNet_DM as net
         elif model_name == 'VGG16_DM':
             from .SCC_Model.VGG16_DM import VGG16_DM as net
+        elif model_name == 'Res50_DM':
+            from .SCC_Model.Res50_DM import Res50_DM as net
             
         self.CCN = net(pretrained)
 

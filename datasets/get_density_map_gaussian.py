@@ -4,10 +4,11 @@ import cv2
 import numpy as np
 from math import floor
  
-def get_density_map_gaussian(img, points, k_size, sigma):
+def get_density_map_gaussian(img_size, points, k_size, sigma):
 
     # points (w, h)
-    [h, w, c] = img.shape
+    #[h, w, c] = img.shape
+    [h, w] = img_size
     im_density = np.zeros((h, w), dtype=float)
 
     if len(points) == 0:

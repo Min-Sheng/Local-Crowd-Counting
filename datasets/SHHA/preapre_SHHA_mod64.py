@@ -12,7 +12,7 @@ dataset = ['train', 'test'] # train / test
 maxSize = 1024 # (w, h)
 minSize = 384  # (w, h)
 
-data_path = '../../ProcessedData/ShanghaiTech_Crowd_Counting_Dataset/part_A_final/'
+data_path = '../../ProcessedData/part_A_final/'
 output_path = '../../ProcessedData/shanghaitech_part_A_mod64/'
 if not os.path.exists(output_path):
 	os.mkdir(output_path)
@@ -78,7 +78,7 @@ if 'test' in dataset:
 		data_den = pd.DataFrame(im_density)
 		data_den.to_csv(csv_path, header=False, index=False)
 
-if dataset == 'train':
+if 'train' in dataset:
 	# train set
 	path = data_path + 'train_data/'
 	output_path += 'train/'
